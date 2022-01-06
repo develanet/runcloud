@@ -1,1 +1,1 @@
-export * from './src/client';
+module.exports = require('./dist/client');
