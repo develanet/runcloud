@@ -1,5 +1,5 @@
 {
-  "name": "runcloud.js",
+  "name": "runcloudjs",
   "version": "1.0.0",
   "description": "Unofficial nodejs client for the runcloud.io REST API",
   "main": "index.js",
