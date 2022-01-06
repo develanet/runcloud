@@ -23,10 +23,10 @@ const client = new Runcloud({
   api_secret: 'YOUR_RUNCLOUD_API_SECRET',
 });
 
-##### async/await
+// async/await
 const list = await client.servers.list()
 
-##### promises
+// promises
 client.servers.list().then((serverList) => console.log(serverList))
 
 ```
