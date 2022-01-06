@@ -1,6 +1,6 @@
 {
   "name": "runcloudjs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unofficial nodejs client for the runcloud.io REST API",
   "main": "index.js",
   "types": "./dist/client.d.ts",
