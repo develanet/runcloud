@@ -6,7 +6,7 @@ export type ClientOpts = {
 export type ServerCreateInput = {
   name: string;
   ipAddress: string;
-  provider?: 'Digital Ocean' | 'Linode' | 'Vultr' | 'AWS' | 'Other';
+  provider?: "Digital Ocean" | "Linode" | "Vultr" | "AWS" | "Other";
 };
 
 export type Server = {
@@ -28,16 +28,7 @@ export type Server = {
 
 export type ServerListResponse = {
   data?: Server[];
-  meta: {
-    pagination: {
-      total: number;
-      count: number;
-      per_page: number;
-      current_page: number;
-      total_pages: number;
-      links?: object;
-    };
-  };
+  meta: Meta;
 };
 
 export type ServerStats = {
@@ -55,6 +46,17 @@ export type ServerStats = {
   };
 };
 
+export type Health = {
+  totalMemory: number;
+  availableMemory: number;
+  usedMemory: number;
+  totalDiskSpace: number;
+  availableDiskSpace: number;
+  usedDiskSpace: number;
+  loadAverage: number;
+  updated_at: string;
+};
+
 export type Hardware = {
   kernelVersion: string;
   processorName: string;
@@ -68,15 +70,26 @@ export type Hardware = {
 };
 
 export type PhpVersion =
-  | 'php55rc'
-  | 'php56rc'
-  | 'php70rc'
-  | 'php71rc'
-  | 'php72rc'
-  | 'php73rc';
+  | "php55rc"
+  | "php56rc"
+  | "php70rc"
+  | "php71rc"
+  | "php72rc"
+  | "php73rc";
 
 export type SSHConfig = {
   passwordlessLogin: boolean;
   useDns: boolean;
   preventRootLogin: boolean;
+};
+
+export type Meta = {
+  pagination: {
+    total: number;
+    count: number;
+    per_page: number;
+    current_page: number;
+    total_pages: number;
+    links: any;
+  };
 };

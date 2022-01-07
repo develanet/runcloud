@@ -1,47 +1,57 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 import {
   ClientOpts,
   Hardware,
+  Health,
   PhpVersion,
   Server,
   ServerCreateInput,
   ServerListResponse,
   ServerStats,
   SSHConfig,
-} from './types';
+} from "./types";
+import {
+  AddDomainNameInput,
+  CloneGitRepoInput,
+  CreateWebAppInput,
+  DomainName,
+  GitObject,
+  InstallPHPScriptInput,
+  PHPResponse,
+  PHPScript,
+  WebApplication,
+} from "./webApp.types";
 
 export class Runcloud {
   protected readonly client: AxiosInstance;
 
   constructor(opts: ClientOpts) {
     this.client = axios.create({
-      baseURL: 'https://manage.runcloud.io/api/v2',
+      baseURL: "https://manage.runcloud.io/api/v2",
       auth: {
         username: opts.api_key,
         password: opts.api_secret,
       },
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
     });
   }
 
   servers = {
     list: async (): Promise<ServerListResponse> => {
-      const { data } = await this.client.get('servers');
+      const { data } = await this.client.get("servers");
       return data;
     },
 
     listShared: async (): Promise<ServerListResponse> => {
-      const { data } = await this.client.get('servers/shared');
+      const { data } = await this.client.get("servers/shared");
       return data;
     },
 
     create: async (args: ServerCreateInput): Promise<Server> => {
-      const { data } = await this.client.post('/servers', {
-        data: args,
-      });
+      const { data } = await this.client.post("/servers", args);
       return data;
     },
 
@@ -86,9 +96,7 @@ export class Runcloud {
       phpVersion: PhpVersion;
     }): Promise<string[]> => {
       const { data } = await this.client.patch(`/servers/${serverID}/php/cli`, {
-        data: {
-          phpVersion,
-        },
+        phpVersion,
       });
       return data;
     },
@@ -105,10 +113,8 @@ export class Runcloud {
       const { data } = await this.client.patch(
         `/servers/${serverID}/settings/meta`,
         {
-          data: {
-            name,
-            provider,
-          },
+          name,
+          provider,
         }
       );
       return data;
@@ -135,11 +141,9 @@ export class Runcloud {
       const { data } = await this.client.patch(
         `/servers/${serverID}/settings/ssh`,
         {
-          data: {
-            passwordlessLogin,
-            useDns,
-            preventRootLogin,
-          },
+          passwordlessLogin,
+          useDns,
+          preventRootLogin,
         }
       );
       return data;
@@ -157,10 +161,8 @@ export class Runcloud {
       const { data } = await this.client.patch(
         `/servers/${serverID}/settings/autoupdate`,
         {
-          data: {
-            autoupdate,
-            securityUpdate,
-          },
+          autoupdate,
+          securityUpdate,
         }
       );
       return data;
@@ -168,6 +170,271 @@ export class Runcloud {
 
     delete: async (serverID: number): Promise<Server> => {
       const { data } = await this.client.delete(`/servers/${serverID}`);
+      return data;
+    },
+  };
+
+  health = {
+    latest: async (serverID: number): Promise<Health> => {
+      const { data } = await this.client.get(
+        `/servers/${serverID}/health/latest`
+      );
+      return data;
+    },
+    cleanDisk: async (serverID: number): Promise<any> => {
+      const { data } = await this.client.patch(
+        `/servers/${serverID}/health/diskcleaner`
+      );
+      return data;
+    },
+  };
+
+  webApps = {
+    create: async (serverId: number, args: CreateWebAppInput) => {
+      const { data } = await this.client.post(
+        `/servers/${serverId}/custom`,
+        args
+      );
+      return data;
+    },
+
+    list: async (serverId: number): Promise<WebApplication[]> => {
+      const { data } = await this.client.get(`/servers/${serverId}/webapps`);
+      return data;
+    },
+
+    get: async ({
+      serverId,
+      webAppId,
+    }: {
+      serverId: number;
+      webAppId: number;
+    }): Promise<WebApplication> => {
+      const { data } = await this.client.get(
+        `/servers/${serverId}/webapps/${webAppId}`
+      );
+      return data;
+    },
+
+    setDefault: async ({
+      serverId,
+      webAppId,
+    }: {
+      serverId: number;
+      webAppId: number;
+    }): Promise<WebApplication> => {
+      const { data } = await this.client.post(
+        `/servers/${serverId}/webapps/${webAppId}/default`
+      );
+      return data;
+    },
+
+    removeDefault: async ({
+      serverId,
+      webAppId,
+    }: {
+      serverId: number;
+      webAppId: number;
+    }): Promise<WebApplication> => {
+      const { data } = await this.client.delete(
+        `/servers/${serverId}/webapps/${webAppId}/default`
+      );
+      return data;
+    },
+
+    rebuild: async ({
+      serverId,
+      webAppId,
+    }: {
+      serverId: number;
+      webAppId: number;
+    }): Promise<WebApplication> => {
+      const { data } = await this.client.patch(
+        `/servers/${serverId}/webapps/${webAppId}/rebuild`
+      );
+      return data;
+    },
+
+    cloneGit: async (args: CloneGitRepoInput): Promise<WebApplication> => {
+      const { data } = await this.client.post(
+        `/servers/${args.serverId}/webapps/${args.webAppId}/git`
+      );
+      return data;
+    },
+
+    getGitObject: async ({
+      serverId,
+      webAppId,
+    }: {
+      serverId: number;
+      webAppId: number;
+    }): Promise<GitObject> => {
+      const { data } = await this.client.get(
+        `/servers/${serverId}/webapps/${webAppId}/git`
+      );
+      return data;
+    },
+
+    changeGITBranch: async ({
+      serverId,
+      webAppId,
+      gitId,
+      branch,
+    }: {
+      serverId: number;
+      webAppId: number;
+      gitId: string;
+      branch: string;
+    }): Promise<GitObject> => {
+      const { data } = await this.client.patch(
+        `/servers/${serverId}/webapps/${webAppId}/git/${gitId}/branch`,
+        {
+          branch,
+        }
+      );
+      return data;
+    },
+
+    customizeGITDeploymentScript: async ({
+      serverId,
+      webAppId,
+      gitId,
+      autoDeploy,
+      deployScript,
+    }: {
+      serverId: number;
+      webAppId: number;
+      gitId: string;
+      autoDeploy: boolean;
+      deployScript?: string;
+    }): Promise<GitObject> => {
+      const { data } = await this.client.patch(
+        `/servers/${serverId}/webapps/${webAppId}/git/${gitId}/script`,
+        {
+          autoDeploy,
+          deployScript,
+        }
+      );
+      return data;
+    },
+
+    forceDeploymentUsingDeploymentScript: async ({
+      serverId,
+      webAppId,
+      gitId,
+    }: {
+      serverId: number;
+      webAppId: number;
+      gitId: string;
+    }): Promise<void> => {
+      await this.client.put(
+        `/servers/${serverId}/webapps/${webAppId}/git/script`
+      );
+    },
+
+    removeGITRepo: async ({
+      serverId,
+      webAppId,
+      gitId,
+    }: {
+      serverId: number;
+      webAppId: number;
+      gitId: string;
+    }): Promise<GitObject> => {
+      const { data } = await this.client.delete(
+        `/servers/${serverId}/webapps/${webAppId}/git/${gitId}`
+      );
+      return data;
+    },
+
+    installPHPScript: async (
+      args: InstallPHPScriptInput
+    ): Promise<PHPResponse> => {
+      const { data } = await this.client.post(
+        `/servers/${args.serverId}/webapps/${args.webAppId}/installer`,
+        {
+          name: args.name,
+        }
+      );
+      return data;
+    },
+
+    getPHPScriptObject: async ({
+      serverId,
+      webAppId,
+    }: {
+      serverId: number;
+      webAppId: number;
+    }): Promise<PHPScript> => {
+      const { data } = await this.client.get(
+        `/servers/${serverId}/webapps/${webAppId}/installer`
+      );
+      return data;
+    },
+
+    removePHPScript: async ({
+      serverId,
+      webAppId,
+      installerId,
+    }: {
+      serverId: number;
+      webAppId: number;
+      installerId: number;
+    }): Promise<PHPScript> => {
+      const { data } = await this.client.delete(
+        `/servers/${serverId}/webapps/${webAppId}/installer/${installerId}`
+      );
+      return data;
+    },
+
+    addDomain: async (args: AddDomainNameInput): Promise<DomainName> => {
+      const { data } = await this.client.post(
+        `/servers/${args.serverId}/webapps/${args.webAppId}/domains`,
+        args
+      );
+      return data;
+    },
+
+    listDomains: async ({
+      serverId,
+      webAppId,
+    }: {
+      serverId: number;
+      webAppId: number;
+    }): Promise<DomainName[]> => {
+      const { data } = await this.client.get(
+        `/servers/${serverId}/webapps/${webAppId}/domains`
+      );
+      return data;
+    },
+
+    getDomainObject: async ({
+      serverId,
+      webAppId,
+      domainId,
+    }: {
+      serverId: number;
+      webAppId: number;
+      domainId: number;
+    }): Promise<DomainName> => {
+      const { data } = await this.client.get(
+        `/servers/${serverId}/webapps/${webAppId}/domains/${domainId}`
+      );
+      return data;
+    },
+
+    deleteDomain: async ({
+      serverId,
+      webAppId,
+      domainId,
+    }: {
+      serverId: number;
+      webAppId: number;
+      domainId: number;
+    }): Promise<DomainName> => {
+      const { data } = await this.client.delete(
+        `/servers/${serverId}/webapps/${webAppId}/domains/${domainId}`
+      );
       return data;
     },
   };
